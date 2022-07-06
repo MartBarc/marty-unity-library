@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Contains the properties of a ship
+/// Contains the properties of a grid
 /// </summary>
 public class GridHandlerProperties : MonoBehaviour
 {

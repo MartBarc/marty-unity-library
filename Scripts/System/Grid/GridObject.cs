@@ -93,12 +93,12 @@ public class GridObject : MonoBehaviour
             this.snapPoints.Add(tile.transform);
 
             //tile.transform.parent = gridNodeObj;
-            if (DEBUG) Debug.Log("NOTE: ShipObject[" + x + ", " + y + "] created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
+            if (DEBUG) Debug.Log("NOTE: GridObject[" + x + ", " + y + "] created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
         }
 
         if (newGameObject == null || tile == null)
         {
-            if (DEBUG) Debug.Log("ERR: ShipObject[" + x + ", " + y + "] failed to be created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
+            if (DEBUG) Debug.Log("ERR: GridObject[" + x + ", " + y + "] failed to be created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
             return -1;
         }
 
@@ -151,7 +151,7 @@ public class GridObject : MonoBehaviour
 
         draggableObjects.Add(tile);
         tile.dragEndedCallback = OnDragEnded;
-        //foreach (ShipObject draggable in draggableObjects)
+        //foreach (GridObject draggable in draggableObjects)
         //{
         //    draggable.dragEndedCallback = OnDragEnded;
         //}
@@ -174,7 +174,7 @@ public class GridObject : MonoBehaviour
                 if (gridNodeObj.GetGameObject() == null)
                 {
                     if (DEBUG) Debug.Log("NOTE: GridTile[" + x + ", " + y + "] is NULL! Filling in!");
-                    AddTile(NULL_TILE_ID, x, y, out GridTile emptyShipObj);
+                    AddTile(NULL_TILE_ID, x, y, out GridTile emptyGridTile);
                 }
             }
         }

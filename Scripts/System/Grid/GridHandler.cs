@@ -20,10 +20,10 @@ public class GridHandler : MonoBehaviour
     [SerializeField] public GridTileCollection gridTileCollection;
 
     private GridHandlerProperties PROP;
-    public GridHandlerProperties GetShipProperties() { return PROP; }
+    public GridHandlerProperties GetGridProperties() { return PROP; }
 
     private GridObject grid;
-    public GridObject GetShipTileGrid() { return this.grid; }
+    public GridObject GetTileGrid() { return this.grid; }
 
     // ------ MonoBehavior Functions ------
     private void Awake()
@@ -34,9 +34,12 @@ public class GridHandler : MonoBehaviour
     public int Init()
     {
         grid = Instantiate(gridObject, this.transform.position, Quaternion.identity);
-        grid.Init(PROP.GetGridSize(), PROP.GetGridSize(), PROP.GetCellSize(), gridTileCollection);
-        grid.transform.parent = this.transform;
+        int status = grid.Init(PROP.GetGridSize(), PROP.GetGridSize(), PROP.GetCellSize(), gridTileCollection);
+        if (status == 0)
+        {
+            grid.transform.parent = this.transform;
+        }
 
-        return 0;
+        return status;
     }
 }
