@@ -51,5 +51,6 @@ public class GridNode
     {
         return tile.IsImpassable();
     }
+
 }
 

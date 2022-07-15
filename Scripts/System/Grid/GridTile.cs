@@ -16,7 +16,7 @@ public class GridTile : MonoBehaviour
     private int uniqueId;
 
     //GridTileObject Properties
-    [SerializeField] public int id; //ALL OBJ START AT 200
+    [SerializeField] public int id; 
     [SerializeField] public string tileName;
     public string GetTileName() { return this.tileName; }
 
@@ -50,7 +50,7 @@ public class GridTile : MonoBehaviour
         uniqueId = -1;
 
         this.id = -1;
-        this.tileName = "name";
+        this.tileName = "Null";
 
         this.impassable = false;
         this.type = TILE_TYPE.UNKNOWN;

@@ -12,9 +12,10 @@ public class GridObject : MonoBehaviour
 
     private GridTileCollection tileCollection;
 
-    public List<Transform> snapPoints;
+    public List<Vector3> snapPoints;
     public List<GridTile> draggableObjects;
-    private float snapRange = 10f;
+    //sensitivity of snap (100f is further, 1f is closer)
+    private float snapRange = 1f; 
 
     private bool init = false;
 
@@ -36,7 +37,7 @@ public class GridObject : MonoBehaviour
     // ------ PUBLIC FUNCTIONS ------
     public int Init(int x, int y, float cellSize, GridTileCollection tileCollection)
     {
-        snapPoints = new List<Transform>();
+        snapPoints = new List<Vector3>();
         draggableObjects = new List<GridTile>();
 
         this.gridX = x;
@@ -64,41 +65,41 @@ public class GridObject : MonoBehaviour
     public int AddTile(int id, int x, int y, out GridTile tile)
     {
         tile = null;
-        if (id < 0) return -1;
+        if (id < -1) return -1; //null tile is -1
 
-        GridNode gridNodeObj = grid.GetGridObject(x, y);
-        if (gridNodeObj == null) return -1;
+        GridNode gridNode = grid.GetGridObject(x, y);
+        if (gridNode == null) return -1;
 
-        if (gridNodeObj.GetGameObject() != null)
+        if (gridNode.GetGameObject() != null)
         {
             if (DEBUG) Debug.Log("NOTE: Tile[" + x + ", " + y + "] exists! Deleting!");
-            this.snapPoints.Remove(gridNodeObj.GetGameObject().transform);
-            Destroy(gridNodeObj.GetGameObject());
+            this.snapPoints.Remove(gridNode.GetGameObject().transform.position);
+            Destroy(gridNode.GetGameObject());
         }
 
         Vector3 gridRealLocation = GetCellCenter(x, y);
         GameObject newGameObject = tileCollection.CreateTilePrefabFromID(id, gridRealLocation);
         if (newGameObject != null)
         {
-            gridNodeObj.SetGameObject(newGameObject);
-            gridNodeObj.SetTile(gridNodeObj.GetGameObject().GetComponent<GridTile>());
+            gridNode.SetGameObject(newGameObject);
+            gridNode.SetTile(gridNode.GetGameObject().GetComponent<GridTile>());
             //newGameObject.transform.parent = this.transform;
 
-            tile = gridNodeObj.GetTile();
+            tile = gridNode.GetTile();
             if (tile.type == TILE_TYPE.EMPTY)
             {
                 tile.SetObjectActive(false);
             }
 
-            this.snapPoints.Add(tile.transform);
+            this.snapPoints.Add(new Vector3(x + cellOffset.x, y + cellOffset.y));// tile.transform.position);
 
             //tile.transform.parent = gridNodeObj;
-            if (DEBUG) Debug.Log("NOTE: GridObject[" + x + ", " + y + "] created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
+            if (DEBUG) Debug.Log("NOTE: GridObject[" + x + ", " + y + "] created at: " + gridNode.GetGameObject().transform.position.ToString());
         }
 
         if (newGameObject == null || tile == null)
         {
-            if (DEBUG) Debug.Log("ERR: GridObject[" + x + ", " + y + "] failed to be created at: " + gridNodeObj.GetGameObject().transform.position.ToString());
+            if (DEBUG) Debug.Log("ERR: GridObject[" + x + ", " + y + "] failed to be created");
             return -1;
         }
 
@@ -142,7 +143,7 @@ public class GridObject : MonoBehaviour
     {
         float x_axis = (x * grid.GetCellSize() - cellOffset.x) + this.transform.position.x;
         float y_axis = (y * grid.GetCellSize() - cellOffset.y) + this.transform.position.y;
-        return new Vector3(x_axis, y_axis);
+        return new Vector3(x_axis + 1.0f , y_axis + 1.0f); //may have to remove 1.0f
     }
 
     public int AddDraggableObject(GridTile tile)
@@ -163,7 +164,7 @@ public class GridObject : MonoBehaviour
 
     private int FillNullTiles()
     {
-        int NULL_TILE_ID = 100;
+        int NULL_TILE_ID = -1;
         for (int x = 0; x < this.gridX; x++)
         {
             for (int y = 0; y < this.gridY; y++)
@@ -175,6 +176,8 @@ public class GridObject : MonoBehaviour
                 {
                     if (DEBUG) Debug.Log("NOTE: GridTile[" + x + ", " + y + "] is NULL! Filling in!");
                     AddTile(NULL_TILE_ID, x, y, out GridTile emptyGridTile);
+                    emptyGridTile.transform.parent = this.transform;
+                    AddDraggableObject(emptyGridTile);
                 }
             }
         }
@@ -183,14 +186,14 @@ public class GridObject : MonoBehaviour
 
     private void OnDragEnded(GridTile tile) //Draggable draggable)
     {
-        float closestDistance = -1;
-        Transform closestSnapPoint = null;
+        float closestDistance = 10000f;
+        Vector3 closestSnapPoint = tile.transform.localPosition;
 
-        foreach (Transform snapPoint in snapPoints)
+        foreach (Vector3 snapPoint in snapPoints) //search through all possible snap points
         {
-            float currentDistance = Vector2.Distance(tile.transform.localPosition, snapPoint.localPosition);
-
-            if (closestSnapPoint == null || currentDistance < closestDistance)
+            //float currentDistance = Vector2.Distance(tile.transform.localPosition, snapPoint.localPosition);
+            float currentDistance = Vector3.Distance(tile.transform.localPosition, snapPoint);
+            if (currentDistance < closestDistance)
             {
                 closestSnapPoint = snapPoint;
                 closestDistance = currentDistance;
@@ -198,22 +201,24 @@ public class GridObject : MonoBehaviour
         }
         if (closestSnapPoint != null && closestDistance <= snapRange)
         {
-            tile.transform.localPosition = closestSnapPoint.localPosition;
+            Debug.Log(closestDistance);
+            Debug.Log(closestSnapPoint);
+            tile.transform.localPosition = closestSnapPoint;
 
-            //
-            GridNode gridNodeObj = grid.GetGridObject(tile.transform.localPosition);
-            if (gridNodeObj.GetGameObject() != null)
-            {
-                this.snapPoints.Remove(gridNodeObj.GetGameObject().transform);
-                Destroy(gridNodeObj.GetGameObject());
-            }
-            gridNodeObj.SetTile(tile);
-            this.snapPoints.Add(tile.transform);
-            FillNullTiles();
+            //// removes the current object
+            //GridNode gridNode = grid.GetGridObject(tile.transform.localPosition);
+            //if (gridNode.GetGameObject() != null)
+            //{
+            //    this.snapPoints.Remove(gridNode.GetGameObject().transform);
+            //    Destroy(gridNode.GetGameObject());
+            //}
+            //gridNode.SetTile(tile);
+            //this.snapPoints.Add(tile.transform);
+            //FillNullTiles();
         }
-        else
-        {
-            Destroy(tile);
-        }
+        //else
+        //{
+        //    Destroy(tile);
+        //}
     }
 }

@@ -23,6 +23,7 @@ public class GridHandler : MonoBehaviour
     public GridHandlerProperties GetGridProperties() { return PROP; }
 
     private GridObject grid;
+    private GridTileCollection tiles;
     public GridObject GetTileGrid() { return this.grid; }
 
     // ------ MonoBehavior Functions ------
@@ -33,13 +34,20 @@ public class GridHandler : MonoBehaviour
 
     public int Init()
     {
-        grid = Instantiate(gridObject, this.transform.position, Quaternion.identity);
-        int status = grid.Init(PROP.GetGridSize(), PROP.GetGridSize(), PROP.GetCellSize(), gridTileCollection);
-        if (status == 0)
+        grid = (GridObject)Instantiate(gridObject, this.transform.position, Quaternion.identity);
+        tiles = (GridTileCollection)Instantiate(gridTileCollection, this.transform.position, Quaternion.identity);
+        if (grid != null && tiles != null)
         {
-            grid.transform.parent = this.transform;
+            PROP = new GridHandlerProperties();
+            int status = grid.Init(PROP.GetGridSize(), PROP.GetGridSize(), PROP.GetCellSize(), tiles);
+            if (status == 0)
+            {
+                grid.transform.parent = this.transform;
+                tiles.transform.parent = this.transform;
+            }
+            return status;
         }
 
-        return status;
+        return -1;
     }
 }
